@@ -12,6 +12,7 @@
       <tr>
         <td> Url </td>
         <td> Short Link </td>
+        <td> Delete </td>
       </tr>
       <% for (url in urls) { %>
         <tr>
@@ -19,7 +20,11 @@
               <%= urls[url] %>
           </td>
           <td>
-            <%= url %>
+            <a href= " /u/<%= url %>">localhost:8080/u/<%= url %></a>
+          </td>
+          <td>
+
+           <form method="POST" action="/urls/<%= url %>/delete"><button>DELETE </button></form>
           </td>
         </tr>
       <% } %>

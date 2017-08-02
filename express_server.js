@@ -64,9 +64,12 @@ app.post("/urls", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL];
-  // console.log('res body', res.body)
-  // console.log('red body', req.params)
-  res.status(301).redirect(`https://wwww.${longURL}`);
+  res.status(301).redirect(`${longURL}`);
   console.log(longURL)
 
 });
+
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect(`/urls`);
+})
