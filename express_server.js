@@ -4,6 +4,8 @@ var PORT = process.env.PORT || 8080; // default port 8080
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+var cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
@@ -30,6 +32,7 @@ app.get("/", (req, res) => {
   res.redirect('/urls');
 });
 
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -43,6 +46,12 @@ app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
+
+app.post("/login", (req, res) => {
+  console.log("Logging in for ", req.body.login);
+  console.log(req.cookies);
+  res.cookie('username', req.body.login).redirect('/urls');
+})
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -81,7 +90,5 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:id/update", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
-  console.log(urlDatabase)
-
   res.redirect(`/urls`);
 })
