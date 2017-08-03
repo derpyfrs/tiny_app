@@ -48,6 +48,11 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.get("/urls/update", (req, res) => {
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
+  res.render("urls_show", templateVars);
+});
+
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
@@ -57,9 +62,8 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   console.log('this is', req.body);  // debug statement to see POST parameters
   var shortUrl = generateRandomNumber();
-  urlDatabase[shortUrl] = req.body.longURL;    // Respond with 'Ok' (we will replace this)
-  console.log(urlDatabase);
-  res.send(`Ok use http://localhost:8080/u/${shortUrl}`);
+  urlDatabase[shortUrl] = req.body.longURL;
+  res.redirect('/urls');
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -71,5 +75,10 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
+  res.redirect(`/urls`);
+})
+
+app.post("/urls/:id/update", (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
   res.redirect(`/urls`);
 })

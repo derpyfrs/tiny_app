@@ -6,10 +6,11 @@
 
   <body>
     <%- include partials/_header.ejs %>
-    <h2> URL LIST </h2>
-
-      <%= shortURL %>
-      <%= longURL %>
-
+     <h1> <%= longURL %> </h1><h2><%= shortURL %> </h2>
+      <form action="/urls/update" method="POST" style="margin:width/2;">
+      <label for="longURL">Enter long URL to generate a new code:</label>
+      <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
+      <input type="submit" value="Update"></form>
+      <br/>
   </body>
 </html>
