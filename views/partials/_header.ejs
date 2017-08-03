@@ -1,8 +1,11 @@
-<header> <h1> Tiny APPPPPPPPP  </h1>   </header>
+<header> <h1> Tiny APPPPPPPPP <%=  templateVars.userName %>
+ </h1>  </header>
 
 <form action="/login", method="POST" style="margin:width/2;">
       <label >Login first dumbass</label>
-      <input id="login" type="text" name="login" placeholder="Username" style="width: 300px">
-      <input type="submit" value="login">
+      <input id="login" type="text" name="login" placeholder="UserName" style="width: 300px">
+      <input type="submit" value="LOGIN!!!!">
 </form>
-
+<form action="/logout", method="POST" style="margin:width/2;">
+      <input type="submit" value="LOGOUT!!!!">
+</form>
