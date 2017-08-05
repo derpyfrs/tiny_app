@@ -16,10 +16,10 @@
         <td> Update </td>
         <td> Upderps </td>
       </tr>
-      <% for (url in urls) { %>
+      <% for (url in templateVars.urls){ %>
         <tr>
           <td>
-              <%= urls[url] %>
+              <%= templateVars.urls[url] %>
           </td>
           <td>
             <a href= " /u/<%= url %>">localhost:8080/u/<%= url %></a>
