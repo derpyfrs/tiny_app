@@ -14,6 +14,19 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+var users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
 function generateRandomNumber() {
   var text = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -35,7 +48,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  let templateVars = { urls: urlDatabase, user: users[req.cookies.user_id] };
   res.render("urls_index", templateVars);
 });
 
@@ -48,7 +61,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id/update", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies["username"] };
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies.user_id] };
   urlDatabase[req.params.id] = req.body.longURL;
   res.render("urls_show", templateVars);
 });
@@ -56,12 +69,15 @@ app.get("/urls/:id/update", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL];
   res.status(301).redirect(`${longURL}`);
-  console.log(longURL)
+});
 
+app.get("/register", (req, res) => {
+  let templateVars = { user: users[req.cookies.user_id] };
+  res.render("register", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies["username"] };
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies.user_id] };
   res.render("urls_show", templateVars);
 });
 
@@ -82,8 +98,30 @@ app.post("/logout", (req, res) => {
 
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
-  res.redirect(`/urls`);
-})
+  res.redirect('/urls');
+});
+
+app.post('/register', (req, res) => {
+  var userId = generateRandomNumber();
+  var usernameAvailable = true;
+
+  Object.keys(users).forEach(function(id) {
+    if (req.body.username === users[id].username) {
+      usernameAvailable = false;
+    }
+  });
+
+  if (usernameAvailable) {
+    users[userId] = {
+      id: userId,
+      username: req.body.username,
+      password: req.body.password
+    };
+    res.cookie('user_id', userId).redirect('/urls')
+  } else {
+    res.status(400).send("<p> Username taken! </p> <br /> <a href='/register'><button>Back to registration</button></a>");
+  }
+});
 
 app.post("/urls/:id/update", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
