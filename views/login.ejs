@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head></head>
+  <body style="font-size:20px; padding:50px;">
+    <% include partials/_header %>
+    <form action="/login" method="POST" style="margin:150px;">
+      Username: <input id="username" type="text" name="username" style="width: 300px" required />
+      Password: <input id="password" type="text" name="password" style="width: 300px" required />
+      <button type='submit'>Login</button>
+    </form>
+  </body>
+</html>

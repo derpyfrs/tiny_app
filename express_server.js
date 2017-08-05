@@ -76,6 +76,11 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  let templateVars = { user: users[req.cookies.user_id] };
+  res.render("login", templateVars);
+});
+
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies.user_id] };
   res.render("urls_show", templateVars);
@@ -89,11 +94,20 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username).redirect('/urls');
+  var verification = [false, null];
+  var responseTemplate = "<p> Wrong username or password! </p> <br /> <a href='/login'><button>Back to log in</button></a>";
+
+  Object.keys(users).forEach(function(id) {
+    if (req.body.username === users[id].username && req.body.password === users[id].password) {
+      verification = [true, id];
+    }
+  });
+
+  verification[0] ? res.cookie('user_id', verification[1]).redirect('/urls') : res.status(403).send(responseTemplate);
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username').redirect('/urls');
+  res.clearCookie('user_id').redirect('/urls');
 })
 
 app.post("/urls/:id/delete", (req, res) => {

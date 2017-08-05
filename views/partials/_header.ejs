@@ -1,9 +1,6 @@
 <% if (!user) { %>
-  <form action="/login", method="POST" style="margin:width/2;">
-    <label >Login first dumbass</label>
-    <input id="username" type="text" name="username" placeholder="Username" style="width: 300px">
-    <button type='submit'>Log In</button>
-  </form>
+  <a href='/login'><button>Log In</button></a>
+  <a href='/register'><button>Sign Up</button></a>
 <% } else { %>
   <header>
     <h1> Tiny APPPPPPPP <%= user.username %> </h1>
