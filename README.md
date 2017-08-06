@@ -20,4 +20,7 @@ and that's it!
 - body-parser
 - cookie-session (encrypted cookies)
 
-
+!["Screenshot of main page no login"]https://github.com/derpyfrs/tiny_app/blob/master/docs/Main%20Page%20no%20ID.png
+!["Screenshot of Register page"]https://github.com/derpyfrs/tiny_app/blob/master/docs/Main%20Page%20with%20Login.png
+!["Screenshot of New URL Input page"]https://github.com/derpyfrs/tiny_app/blob/master/docs/New%20URL%20Page.png
+!["Screenshot of main page with user logged in and URL in place"]https://github.com/derpyfrs/tiny_app/blob/master/docs/Register%20ID%20Page.png
