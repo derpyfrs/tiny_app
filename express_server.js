@@ -120,7 +120,6 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userId: req.session.user_id
   }
-  console.log(urlDatabase);
   res.redirect('/urls');
 });
 
@@ -180,7 +179,6 @@ app.post('/register', (req, res) => {
       password: password
     };
 
-    console.log(users);
     req.session.user_id = userId;
     res.redirect('/urls')
   } else {
