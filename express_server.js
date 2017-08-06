@@ -15,34 +15,17 @@ app.use(cookieSession({
 );
 
 var urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userId: "userRandomID"
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userId: "user2RandomID"
-  }
 };
 
 var users = {
-  "userRandomID": {
-    id: "userRandomID",
-    username: "user@example.com",
-    password: encryptPassword("purple-monkey-dinosaur")
-  },
- "user2RandomID": {
-    id: "user2RandomID",
-    username: "user2@example.com",
-    password: encryptPassword("dishwasher-funk")
-  },
-  '12345': {
-    id: '12345',
+  '1': {
+    id: '1',
     username: 'derp',
     password: encryptPassword('derp')
   }
 }
 
+// helper functions
 function encryptPassword(str) {
   return bcrypt.hashSync(str, 10);
 }
@@ -65,6 +48,16 @@ app.listen(PORT, () => {
 
 app.get("/", (req, res) => {
   res.redirect('/urls');
+});
+
+app.get("/register", (req, res) => {
+  let templateVars = { user: users[req.session.user_id] };
+  res.render("register", templateVars);
+});
+
+app.get("/login", (req, res) => {
+  let templateVars = { user: users[req.session.user_id] };
+  res.render("login", templateVars);
 });
 
 app.get("/urls", (req, res) => {
@@ -97,16 +90,6 @@ app.get("/urls/:id/update", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL].longURL;
   res.status(301).redirect(`${longURL}`);
-});
-
-app.get("/register", (req, res) => {
-  let templateVars = { user: users[req.session.user_id] };
-  res.render("register", templateVars);
-});
-
-app.get("/login", (req, res) => {
-  let templateVars = { user: users[req.session.user_id] };
-  res.render("login", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
