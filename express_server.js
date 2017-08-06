@@ -3,12 +3,16 @@ var app = express();
 var PORT = process.env.PORT || 8080; // default port 8080
 
 var bodyParser = require("body-parser");
-var cookieParser = require("cookie-parser");
+var cookieSession = require("cookie-session");
 var bcrypt = require('bcrypt');
 
 app.set("view engine", "ejs");
-app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['derpyFRS'],
+  })
+);
 
 var urlDatabase = {
   "b2xVn2": {
@@ -25,18 +29,22 @@ var users = {
   "userRandomID": {
     id: "userRandomID",
     username: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: encryptPassword("purple-monkey-dinosaur")
   },
  "user2RandomID": {
     id: "user2RandomID",
     username: "user2@example.com",
-    password: "dishwasher-funk"
+    password: encryptPassword("dishwasher-funk")
   },
   '12345': {
     id: '12345',
     username: 'derp',
-    password: 'derp'
+    password: encryptPassword('derp')
   }
+}
+
+function encryptPassword(str) {
+  return bcrypt.hashSync(str, 10);
 }
 
 function generateRandomNumber() {
@@ -60,7 +68,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, user: users[req.cookies.user_id] };
+  let templateVars = { urls: urlDatabase, user: users[req.session.user_id] };
   res.render("urls_index", templateVars);
 });
 
@@ -69,8 +77,8 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id] };
-  if (req.cookies.user_id) {
+  let templateVars = { user: users[req.session.user_id] };
+  if (req.session.user_id) {
     res.render("urls_new", templateVars);
   } else {
     res.status(301).redirect('/login');
@@ -78,8 +86,8 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id/update", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id].longURL, user: users[req.cookies.user_id] };
-  if (req.cookies.user_id === urlDatabase[req.params.id].userId) {
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id].longURL, user: users[req.session.user_id] };
+  if (req.session.user_id === urlDatabase[req.params.id].userId) {
     res.render("urls_show", templateVars);
   } else {
     res.send("You are not the owner of this URL <a href='/urls'><button>Back to home</button></a>");
@@ -92,17 +100,17 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id] };
+  let templateVars = { user: users[req.session.user_id] };
   res.render("register", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id] };
+  let templateVars = { user: users[req.session.user_id] };
   res.render("login", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies.user_id] };
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.session.user_id] };
   res.render("urls_show", templateVars);
 });
 
@@ -110,7 +118,7 @@ app.post("/urls", (req, res) => {
   var shortUrl = generateRandomNumber();
   urlDatabase[shortUrl] = {
     longURL: req.body.longURL,
-    userId: req.cookies.user_id
+    userId: req.session.user_id
   }
   console.log(urlDatabase);
   res.redirect('/urls');
@@ -126,11 +134,17 @@ app.post("/login", (req, res) => {
     }
   });
 
-  verification[0] ? res.cookie('user_id', verification[1]).redirect('/urls') : res.status(403).send(responseTemplate);
+  if (verification[0]) {
+    req.session.user_id = verification[1];
+    res.redirect('/urls');
+  } else {
+    res.status(403).send(responseTemplate);
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id').redirect('/urls');
+  req.session = null;
+  res.redirect('/urls');
 })
 
 app.post("/urls/:id/update", (req, res) => {
@@ -139,7 +153,7 @@ app.post("/urls/:id/update", (req, res) => {
 })
 
 app.post("/urls/:id/delete", (req, res) => {
-  if (req.cookies.user_id === urlDatabase[req.params.id].userId) {
+  if (req.session.user_id === urlDatabase[req.params.id].userId) {
     delete urlDatabase[req.params.id];
   } else {
     res.send("You are not the owner of this URL <a href='/urls'><button>Back to home</button></a>");
@@ -158,17 +172,17 @@ app.post('/register', (req, res) => {
 
   if (usernameAvailable) {
     var userId = generateRandomNumber();
-    var password = req.body.password
-    var hashed_password = bcrypt.hashSync(password, 10);
+    var password = encryptPassword(req.body.password);
 
     users[userId] = {
       id: userId,
       username: req.body.username,
-      password: hashed_password
+      password: password
     };
 
     console.log(users);
-    res.cookie('user_id', userId).redirect('/urls')
+    req.session.user_id = userId;
+    res.redirect('/urls')
   } else {
     res.status(400).send("<p> Username taken! </p> <br /> <a href='/register'><button>Back to registration</button></a>");
   }
