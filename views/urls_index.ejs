@@ -10,16 +10,15 @@
 
     <table border='1'>
       <tr>
-        <td> Url </td>
-        <td> Short Link </td>
-        <td> Delete </td>
-        <td> Update </td>
-        <td> Upderps </td>
+        <td align='center'> Original Url </td>
+        <td align='center'> Shortened URL </td>
+        <td colspan='2' align='center'> Additional actions </td>
       </tr>
       <% for (url in urls) { %>
+        <% if (user && user.id === urls[url].userId) { %>
         <tr>
           <td>
-              <%= urls[url] %>
+              <%= urls[url].longURL %>
           </td>
           <td>
             <a href= " /u/<%= url %>">localhost:8080/u/<%= url %></a>
@@ -30,20 +29,10 @@
           <td>
            <form method="GET" action="/urls/<%= url %>/update"><button> UPDATE </button></form>
           </td>
-          <td>
-           <form method="POST" action="/urls/<%= url %>/Update">
-      <input id="longURL" type="text" name="longURL" value="http://" style="width: 300px">
-           <button> UPDERPS</button></form>
-          </td>
         </tr>
-
-
+        <% } %>
       <% } %>
     </table>
-      <p>
-
-      <form method="GET" action="/urls/new"> <button> GO HERE TO SHORTEN A NEW URL SUCKA </button></form>
-
-      </p>
+    <a href='urls/new'><button> GO HERE TO SHORTEN A NEW URL SUCKA </button></a>
   </body>
 </html>

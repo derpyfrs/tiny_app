@@ -4,26 +4,38 @@ var PORT = process.env.PORT || 8080; // default port 8080
 
 var bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
+var bcrypt = require('bcrypt');
 
 app.set("view engine", "ejs");
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 
 var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userId: "userRandomID"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userId: "user2RandomID"
+  }
 };
 
 var users = {
   "userRandomID": {
     id: "userRandomID",
-    email: "user@example.com",
+    username: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
     id: "user2RandomID",
-    email: "user2@example.com",
+    username: "user2@example.com",
     password: "dishwasher-funk"
+  },
+  '12345': {
+    id: '12345',
+    username: 'derp',
+    password: 'derp'
   }
 }
 
@@ -57,17 +69,25 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = { user: users[req.cookies.user_id] };
+  if (req.cookies.user_id) {
+    res.render("urls_new", templateVars);
+  } else {
+    res.status(301).redirect('/login');
+  }
 });
 
 app.get("/urls/:id/update", (req, res) => {
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies.user_id] };
-  urlDatabase[req.params.id] = req.body.longURL;
-  res.render("urls_show", templateVars);
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id].longURL, user: users[req.cookies.user_id] };
+  if (req.cookies.user_id === urlDatabase[req.params.id].userId) {
+    res.render("urls_show", templateVars);
+  } else {
+    res.send("You are not the owner of this URL <a href='/urls'><button>Back to home</button></a>");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].longURL;
   res.status(301).redirect(`${longURL}`);
 });
 
@@ -87,9 +107,12 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log('this is', req.body);  // debug statement to see POST parameters
   var shortUrl = generateRandomNumber();
-  urlDatabase[shortUrl] = req.body.longURL;
+  urlDatabase[shortUrl] = {
+    longURL: req.body.longURL,
+    userId: req.cookies.user_id
+  }
+  console.log(urlDatabase);
   res.redirect('/urls');
 });
 
@@ -98,7 +121,7 @@ app.post("/login", (req, res) => {
   var responseTemplate = "<p> Wrong username or password! </p> <br /> <a href='/login'><button>Back to log in</button></a>";
 
   Object.keys(users).forEach(function(id) {
-    if (req.body.username === users[id].username && req.body.password === users[id].password) {
+    if (req.body.username === users[id].username && bcrypt.compareSync(req.body.password, users[id].password)) {
       verification = [true, id];
     }
   });
@@ -110,13 +133,21 @@ app.post("/logout", (req, res) => {
   res.clearCookie('user_id').redirect('/urls');
 })
 
+app.post("/urls/:id/update", (req, res) => {
+  urlDatabase[req.params.id].longURL = req.body.longURL;
+  res.redirect('/urls');
+})
+
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
+  if (req.cookies.user_id === urlDatabase[req.params.id].userId) {
+    delete urlDatabase[req.params.id];
+  } else {
+    res.send("You are not the owner of this URL <a href='/urls'><button>Back to home</button></a>");
+  }
   res.redirect('/urls');
 });
 
 app.post('/register', (req, res) => {
-  var userId = generateRandomNumber();
   var usernameAvailable = true;
 
   Object.keys(users).forEach(function(id) {
@@ -126,18 +157,19 @@ app.post('/register', (req, res) => {
   });
 
   if (usernameAvailable) {
+    var userId = generateRandomNumber();
+    var password = req.body.password
+    var hashed_password = bcrypt.hashSync(password, 10);
+
     users[userId] = {
       id: userId,
       username: req.body.username,
-      password: req.body.password
+      password: hashed_password
     };
+
+    console.log(users);
     res.cookie('user_id', userId).redirect('/urls')
   } else {
     res.status(400).send("<p> Username taken! </p> <br /> <a href='/register'><button>Back to registration</button></a>");
   }
 });
-
-app.post("/urls/:id/update", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
-  res.redirect(`/urls`);
-})
